@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 from datetime import datetime
 from typing import List
 
@@ -8,7 +8,7 @@ from app.models.order import OrderStatusEnum
 class OrderStatusUpdate(BaseModel):
     status: OrderStatusEnum
 
-    @validator("status", pre=True)
+    @field_validator("status", mode="before")
     def normalize_status(cls, v: str):
         # Приводим к нижнему регистру и заменяем "ё" на "е"
         normalized = v.lower().replace("ё", "е")
@@ -30,8 +30,9 @@ class OrderCreate(BaseModel):
 class OrderItemRead(OrderItemCreate):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes":True
+    }
 
 
 class OrderRead(BaseModel):
@@ -41,5 +42,6 @@ class OrderRead(BaseModel):
     status: OrderStatusEnum
     items: List[OrderItemRead]
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True
+    }

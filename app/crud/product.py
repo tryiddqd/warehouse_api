@@ -15,7 +15,7 @@ def create_product(db: Session, product: ProductCreate):
         return existing_product
 
     # Если нет — создаём новый товар
-    db_product = Product(**product.dict())
+    db_product = Product(**product.model_dump())
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
@@ -40,7 +40,7 @@ def update_product(db: Session, product_id: int, update_data: ProductCreate):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         return None
-    for key, value in update_data.dict().items():
+    for key, value in update_data.model_dump().items():
         setattr(product, key, value)
     db.commit()
     db.refresh(product)
