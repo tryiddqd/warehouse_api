@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.log
 *.db
+include.txt
 
 # Virtual environment
 .venv/
@@ -12,4 +13,9 @@ __pycache__/
 
 # OS
 .DS_Store
+*.db
+*.sqlite
+*.zip
+*.log
+.env
 Thumbs.db

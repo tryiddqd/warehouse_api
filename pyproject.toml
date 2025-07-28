@@ -6,6 +6,7 @@ authors = [
     {name = "tryiddqd",email = "danil.spam@gmail.com"}
 ]
 readme = "README.md"
+
 requires-python = ">=3.11"
 dependencies = [
     "fastapi (>=0.116.1,<0.117.0)",
@@ -15,7 +16,8 @@ dependencies = [
     "psycopg2-binary (>=2.9.10,<3.0.0)",
     "python-dotenv (>=1.1.1,<2.0.0)"
 ]
-
+[tool.poetry]
+package-mode = false
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -24,4 +26,5 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
 httpx = "^0.28.1"
+pytest-asyncio = "^1.1.0"
 
