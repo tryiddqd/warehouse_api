@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from app.api import product as product_router
+from dotenv import load_dotenv
+load_dotenv()
 
 
 from app.models import product
@@ -10,7 +12,7 @@ setup_logging()
 
 app = FastAPI()
 
-Base.metadata.create_all(bind=engine)
+
 app.include_router(product_router.router)
 app.include_router(order_router.router)
 @app.get("/")

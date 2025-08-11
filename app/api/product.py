@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
-from app import crud
-from app.crud.product import create_product
+from app.crud import product as product_crud
 from app.schemas.product import ProductCreate, ProductRead
-from app.models import product as product_model
-from app.deps.db import get_db
+from app.core.database import get_db
+
 
 router = APIRouter(
     prefix="/products",
@@ -13,33 +12,30 @@ router = APIRouter(
 )
 
 @router.post("/", response_model=ProductRead)
-def create_product(product: ProductCreate, db: Session = Depends(get_db)):
-    return crud.product.create_product(db=db, product=product)
+async def create_product(product: ProductCreate, db: AsyncSession = Depends(get_db)):
+    return await product_crud.create_product(db=db, product=product)
 
 @router.get("/", response_model=List[ProductRead])
-def read_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return crud.product.get_products(db=db, skip=skip, limit=limit)
-
+async def read_products(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)):
+    return await product_crud.get_products(db=db, skip=skip, limit=limit)
 
 @router.get("/{product_id}", response_model=ProductRead)
-def read_product(product_id: int, db: Session = Depends(get_db)):
-    db_product = crud.product.get_product(db, product_id)
+async def read_product(product_id: int, db: AsyncSession = Depends(get_db)):
+    db_product = await product_crud.get_product(db, product_id)
     if db_product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     return db_product
 
-
 @router.put("/{product_id}", response_model=ProductRead)
-def update_product(product_id: int, product: ProductCreate, db: Session = Depends(get_db)):
-    updated = crud.product.update_product(db, product_id, product)
+async def update_product(product_id: int, product: ProductCreate, db: AsyncSession = Depends(get_db)):
+    updated = await product_crud.update_product(db, product_id, product)
     if not updated:
         raise HTTPException(status_code=404, detail="Product not found")
     return updated
 
-
 @router.delete("/{product_id}", response_model=ProductRead)
-def delete_product(product_id: int, db: Session = Depends(get_db)):
-    deleted = crud.product.delete_product(db, product_id)
+async def delete_product(product_id: int, db: AsyncSession = Depends(get_db)):
+    deleted = await product_crud.delete_product(db, product_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Product not found")
     return deleted

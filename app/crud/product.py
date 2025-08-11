@@ -1,47 +1,55 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.models.product import Product
 from app.schemas.product import ProductCreate
 
-
-def create_product(db: Session, product: ProductCreate):
-    # Проверка: есть ли товар с таким именем
-    existing_product = db.query(Product).filter(Product.name == product.name).first()
+# Создание или обновление существующего продукта
+async def create_product(db: AsyncSession, product: ProductCreate) -> Product:
+    result = await db.execute(select(Product).where(Product.name == product.name))
+    existing_product = result.scalar_one_or_none()
 
     if existing_product:
-        # Если есть — увеличиваем количество
         existing_product.quantity += product.quantity
-        db.commit()
-        db.refresh(existing_product)
+        await db.commit()
+        await db.refresh(existing_product)
         return existing_product
 
-    # Если нет — создаём новый товар
     db_product = Product(**product.model_dump())
     db.add(db_product)
-    db.commit()
-    db.refresh(db_product)
+    await db.commit()
+    await db.refresh(db_product)
     return db_product
 
+# Получение одного продукта по ID
+async def get_product(db: AsyncSession, product_id: int):
+    result = await db.execute(select(Product).where(Product.id == product_id))
+    return result.scalar_one_or_none()
 
-def get_product(db: Session, product_id: int):
-    return db.query(Product).filter(Product.id == product_id).first()
+# Получение списка продуктов
+async def get_products(db: AsyncSession, skip: int = 0, limit: int = 100):
+    result = await db.execute(select(Product).offset(skip).limit(limit))
+    return result.scalars().all()
 
-def get_products(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Product).offset(skip).limit(limit).all()
-
-def delete_product(db: Session, product_id: int):
-    product = db.query(Product).filter(Product.id == product_id).first()
+# Удаление продукта
+async def delete_product(db: AsyncSession, product_id: int):
+    result = await db.execute(select(Product).where(Product.id == product_id))
+    product = result.scalar_one_or_none()
     if product:
-        db.delete(product)
-        db.commit()
+        await db.delete(product)
+        await db.commit()
     return product
 
-
-def update_product(db: Session, product_id: int, update_data: ProductCreate):
-    product = db.query(Product).filter(Product.id == product_id).first()
+# Обновление продукта
+async def update_product(db: AsyncSession, product_id: int, update_data: ProductCreate):
+    result = await db.execute(select(Product).where(Product.id == product_id))
+    product = result.scalar_one_or_none()
     if not product:
         return None
+
     for key, value in update_data.model_dump().items():
         setattr(product, key, value)
-    db.commit()
-    db.refresh(product)
+
+    await db.commit()
+    await db.refresh(product)
     return product
