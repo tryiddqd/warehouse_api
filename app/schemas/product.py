@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional
+from typing import Optional, Literal
 
 
 class ProductBase(BaseModel):
@@ -24,3 +24,12 @@ class ProductRead(ProductBase):
     model_config = {
         "from_attributes": True
     }
+
+SortBy = Literal["id", "name", "price", "quantity"]
+SortOrder = Literal["asc", "desc"]
+
+class ProductPage(BaseModel):
+    items: list[ProductRead]
+    total: int
+    limit: int
+    offset: int
