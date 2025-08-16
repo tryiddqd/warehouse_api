@@ -28,6 +28,19 @@ class ProductRead(ProductBase):
 SortBy = Literal["id", "name", "price", "quantity"]
 SortOrder = Literal["asc", "desc"]
 
+class ProductSearch(BaseModel):
+    q: str | None = Field(None, min_length=1, max_length=100)
+    min_price: float | None = Field(None, ge=0)
+    max_price: float | None = Field(None, ge=0)
+
+
+class PageParams(BaseModel):
+    limit: int | None = Field(20, ge=1, le=100)
+    offset: int | None = Field(0, ge=0)
+    sort_by: SortBy = "id"
+    sort_order: SortOrder = "asc"
+
+
 class ProductPage(BaseModel):
     items: list[ProductRead]
     total: int

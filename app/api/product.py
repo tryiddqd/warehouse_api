@@ -4,7 +4,8 @@ from typing import List, Annotated
 from app.crud import product as product_crud
 from app.schemas.product import (
     ProductCreate, ProductRead,
-    ProductPage, SortBy, SortOrder,
+    ProductPage, ProductSearch,
+    PageParams
 )
 from app.core.database import get_db
 
@@ -16,19 +17,28 @@ router = APIRouter(
 
 @router.get("/list", response_model=ProductPage)
 async def list_products(
-    offset: Annotated[int, Query(ge=0)] = 0,
-    limit: Annotated[int, Query(ge=1, le=100)] = 20,
-    sort_by: Annotated[SortBy, Query(description="id|name|price|quantity")] = "id",
-    sort_order: Annotated[SortOrder, Query(description="asc|desc")] = "asc",
+    page_params: Annotated[PageParams, Depends()],
     db: AsyncSession = Depends(get_db),
 ):
     items, total = await product_crud.list_products(
-        db, limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order
+        db, page_params=page_params
     )
     return ProductPage(
         items=[ProductRead.model_validate(i) for i in items],
-        total=total, limit=limit, offset=offset
+        total=total, limit=page_params.limit, offset=page_params.offset
     )
+
+@router.get("/search", response_model=ProductPage)
+async def search_products(
+        product_search: Annotated[ProductSearch, Depends()],
+        page_params: Annotated[PageParams, Depends()],
+        db: AsyncSession = Depends(get_db)):
+    items, total =  await product_crud.search_products(db=db, product_search=product_search, page_params=page_params)
+    return ProductPage(
+        items=[ProductRead.model_validate(i) for i in items],
+        total=total, limit=page_params.limit, offset=page_params.offset
+    )
+
 
 @router.post("/", response_model=ProductRead)
 async def create_product(product: ProductCreate, db: AsyncSession = Depends(get_db)):
